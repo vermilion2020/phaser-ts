@@ -9,6 +9,7 @@ export default class HelloWorldScene extends Phaser.Scene
     private stars?: Phaser.Physics.Arcade.Group;
     private bombs?: Phaser.Physics.Arcade.Group;
     private scoreText?: Phaser.GameObjects.Text;
+    private gameOverText?: Phaser.GameObjects.Text;
     private score = 0;
     private gameOver = false;
     
@@ -92,11 +93,21 @@ export default class HelloWorldScene extends Phaser.Scene
         this.physics.add.collider(this.player, this.bombs, this.handleHitBomb, undefined, this);
     }
 
-    private handleHitBomb(player: Phaser.GameObjects.GameObject, b: Phaser.GameObjects.GameObject) {
+    private handleHitBomb(p: Phaser.GameObjects.GameObject, b: Phaser.GameObjects.GameObject) {
+        const player = <Phaser.Physics.Arcade.Sprite>p;
         this.physics.pause();
-        this.player?.setTint(0xff0000);
-        this.player?.anims.play(PlayerView.TURN);
+        player.setTint(0xff0000);
+        player.anims.play(PlayerView.TURN);
         this.gameOver = true;
+        this.gameOverText = this.add.text(350, 250, 'GAME OVER\npress Space to restart', {
+            font: '40px bold',
+            color: '#ff0000',
+            align: 'center'
+        });
+        const x = 400 - this.gameOverText.width / 2;
+        const y = 300 - this.gameOverText.height / 2;
+        this.gameOverText.setX(x);
+        this.gameOverText.setY(y);
     }
 
     private handleCollectStars(p: Phaser.GameObjects.GameObject, s: Phaser.GameObjects.GameObject) {
@@ -118,7 +129,7 @@ export default class HelloWorldScene extends Phaser.Scene
                 Phaser.Math.Between(400, 800):
                 Phaser.Math.Between(0, 400);
     
-                const bomb: Phaser.Physics.Arcade.Image = this.bombs?.create(x, 16, 'bomb');
+                const bomb: Phaser.Physics.Arcade.Image = this.bombs?.create(x, 16, Imgs.BOMB);
                 bomb.setBounce(1);
                 bomb.setCollideWorldBounds(true);
                 bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
@@ -140,6 +151,10 @@ export default class HelloWorldScene extends Phaser.Scene
 
         if (this.cursors?.up?.isDown && this.player?.body.touching.down) {
             this.player?.setVelocityY(-330);
+        }
+
+        if (this.cursors?.space?.isDown && this.gameOver) {
+            this.scene.restart();
         }
     }
 }
