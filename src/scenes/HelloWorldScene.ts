@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { Imgs, PlayerView } from '~/common/images.enum';
 
 export default class HelloWorldScene extends Phaser.Scene
 {
@@ -17,32 +18,32 @@ export default class HelloWorldScene extends Phaser.Scene
 	}
 
 	preload() {
-        this.load.image('sky', 'assets/sky.png');
-        this.load.image('ground', 'assets/platform.png');
-        this.load.image('star', 'assets/star.png');
-        this.load.image('bomb', 'assets/bomb.png');
-        this.load.spritesheet('dude', 'assets/dude.png', { 
+        this.load.image(Imgs.SKY, 'assets/sky.png');
+        this.load.image(Imgs.GROUND, 'assets/platform.png');
+        this.load.image(Imgs.STAR, 'assets/star.png');
+        this.load.image(Imgs.BOMB, 'assets/bomb.png');
+        this.load.spritesheet(Imgs.DUDE, 'assets/dude.png', { 
             frameWidth: 32, frameHeight: 48
         });
     }
 
     create() {
-        this.add.image(400, 300, 'sky');
+        this.add.image(400, 300, Imgs.SKY);
         
         this.platforms = this.physics.add.staticGroup();
-        (<Phaser.Physics.Arcade.Sprite>this.platforms.create(400, 568, 'ground'))
+        (<Phaser.Physics.Arcade.Sprite>this.platforms.create(400, 568, Imgs.GROUND))
             .setScale(2)
             .refreshBody();
-        this.platforms.create(600, 400, 'ground');
-        this.platforms.create(50, 250, 'ground');
-        this.platforms.create(750, 220, 'ground');
-        this.player = this.physics.add.sprite(100, 450, 'dude');
+        this.platforms.create(600, 400, Imgs.GROUND);
+        this.platforms.create(50, 250, Imgs.GROUND);
+        this.platforms.create(750, 220, Imgs.GROUND);
+        this.player = this.physics.add.sprite(100, 450, Imgs.DUDE);
         this.player.setBounce(0.2);
         this.player.setCollideWorldBounds(true);
 
         this.anims.create({
-            key: 'left',
-            frames: this.anims.generateFrameNames('dude', {
+            key: PlayerView.LEFT,
+            frames: this.anims.generateFrameNames(Imgs.DUDE, {
                 start: 0, end: 3
             }),
             frameRate: 10,
@@ -50,14 +51,14 @@ export default class HelloWorldScene extends Phaser.Scene
         });
 
         this.anims.create({
-            key: 'turn',
-            frames: [{ key: 'dude', frame: 4 }],
+            key: PlayerView.TURN,
+            frames: [{ key: Imgs.DUDE, frame: 4 }],
             frameRate: 20
         });
 
         this.anims.create({
-            key: 'right',
-            frames: this.anims.generateFrameNames('dude', {
+            key: PlayerView.RIGHT,
+            frames: this.anims.generateFrameNames(Imgs.DUDE, {
                 start: 5, end: 8}
             ),
             frameRate: 10,
@@ -69,7 +70,7 @@ export default class HelloWorldScene extends Phaser.Scene
         this.cursors = this.input.keyboard.createCursorKeys();
 
         this.stars = this.physics.add.group({
-            key: 'star',
+            key: Imgs.STAR,
             repeat: 11,
             setXY: { x: 12, y: 0, stepX: 70 }
         });
@@ -94,12 +95,13 @@ export default class HelloWorldScene extends Phaser.Scene
     private handleHitBomb(player: Phaser.GameObjects.GameObject, b: Phaser.GameObjects.GameObject) {
         this.physics.pause();
         this.player?.setTint(0xff0000);
-        this.player?.anims.play('turn');
+        this.player?.anims.play(PlayerView.TURN);
         this.gameOver = true;
     }
 
-    private handleCollectStars(player: Phaser.GameObjects.GameObject, s: Phaser.GameObjects.GameObject) {
+    private handleCollectStars(p: Phaser.GameObjects.GameObject, s: Phaser.GameObjects.GameObject) {
         const star = <Phaser.Physics.Arcade.Image>s;
+        const player = <Phaser.Physics.Arcade.Sprite>p;
         star.disableBody(true, true);
 
         this.score += 10;
@@ -111,8 +113,8 @@ export default class HelloWorldScene extends Phaser.Scene
                 star.enableBody(true, star.x, 0, true, true);
             });
 
-            if (this.player) {
-                const x = <number>this.player.x < 400 ? 
+            if (player) {
+                const x = <number>player.x < 400 ? 
                 Phaser.Math.Between(400, 800):
                 Phaser.Math.Between(0, 400);
     
@@ -127,13 +129,13 @@ export default class HelloWorldScene extends Phaser.Scene
     update() {
         if (this.cursors?.left?.isDown) {
             this.player?.setVelocityX(-160);
-            this.player?.anims.play('left', true);
+            this.player?.anims.play(PlayerView.LEFT, true);
         } else if (this.cursors?.right?.isDown) {
             this.player?.setVelocityX(160);
-            this.player?.anims.play('right', true);
+            this.player?.anims.play(PlayerView.RIGHT, true);
         } else {
             this.player?.setVelocityX(0);
-            this.player?.anims.play('turn', true);
+            this.player?.anims.play(PlayerView.TURN, true);
         }
 
         if (this.cursors?.up?.isDown && this.player?.body.touching.down) {
