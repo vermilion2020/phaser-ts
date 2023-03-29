@@ -1,5 +1,5 @@
 import Phaser from 'phaser'
-import { Imgs, PlayerView } from '~/common/images.enum';
+import { Imgs, PlayerView, Sounds } from '~/common/images.enum';
 
 export default class HelloWorldScene extends Phaser.Scene
 {
@@ -10,6 +10,8 @@ export default class HelloWorldScene extends Phaser.Scene
     private bombs?: Phaser.Physics.Arcade.Group;
     private scoreText?: Phaser.GameObjects.Text;
     private gameOverText?: Phaser.GameObjects.Text;
+    private starCollectedS?: Phaser.Sound.BaseSound;
+    private gameOverS?: Phaser.Sound.BaseSound;
     private score = 0;
     private gameOver = false;
     
@@ -23,12 +25,16 @@ export default class HelloWorldScene extends Phaser.Scene
         this.load.image(Imgs.GROUND, 'assets/platform.png');
         this.load.image(Imgs.STAR, 'assets/star.png');
         this.load.image(Imgs.BOMB, 'assets/bomb.png');
+        this.load.audio(Sounds.STAR, ['assets/sounds/star.mp3']);
+        this.load.audio(Sounds.GAME_OVER, ['assets/sounds/game-over.mp3']);
         this.load.spritesheet(Imgs.DUDE, 'assets/dude.png', { 
             frameWidth: 32, frameHeight: 48
         });
     }
 
     create() {
+        this.starCollectedS = this.sound.add(Sounds.STAR, { loop: false });
+        this.gameOverS = this.sound.add(Sounds.GAME_OVER, { loop: false });
         this.add.image(400, 300, Imgs.SKY);
         
         this.platforms = this.physics.add.staticGroup();
@@ -99,6 +105,7 @@ export default class HelloWorldScene extends Phaser.Scene
         player.setTint(0xff0000);
         player.anims.play(PlayerView.TURN);
         this.gameOver = true;
+        this.gameOverS?.play();
         this.gameOverText = this.add.text(350, 250, 'GAME OVER\npress Space to restart', {
             font: '40px bold',
             color: '#ff0000',
@@ -113,6 +120,7 @@ export default class HelloWorldScene extends Phaser.Scene
     private handleCollectStars(p: Phaser.GameObjects.GameObject, s: Phaser.GameObjects.GameObject) {
         const star = <Phaser.Physics.Arcade.Image>s;
         const player = <Phaser.Physics.Arcade.Sprite>p;
+        this.starCollectedS?.play();
         star.disableBody(true, true);
 
         this.score += 10;
